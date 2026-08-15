@@ -1,0 +1,272 @@
+:root {
+  /* متغيرات حساب حركة الماوس (لا تقم بتعديلها) */
+  --pointer-x: 50%;
+  --pointer-y: 50%;
+  --pointer-from-center: 0;
+  --pointer-from-top: 0.5;
+  --pointer-from-left: 0.5;
+  --card-opacity: 0;
+  --rotate-x: 0deg;
+  --rotate-y: 0deg;
+  
+  /* ألوان وتصميم البطاقة */
+  --behind-glow-color: rgba(34, 211, 238, 0.4); /* لون التوهج الخلفي (سماوي) */
+  --behind-glow-size: 40%;
+  --card-radius: 24px; /* زوايا أنعم */
+}
+
+.pc-card-wrapper {
+  perspective: 1000px; /* عمق الأبعاد الثلاثية */
+  transform: translate3d(0, 0, 0.1px);
+  position: relative;
+  touch-action: none;
+}
+
+/* التوهج الخلفي */
+.pc-behind {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  background: radial-gradient(
+    circle at var(--pointer-x) var(--pointer-y),
+    var(--behind-glow-color) 0%,
+    transparent var(--behind-glow-size)
+  );
+  filter: blur(40px);
+  opacity: calc(1 * var(--card-opacity));
+  transition: opacity 200ms ease;
+}
+
+.pc-card-wrapper:hover,
+.pc-card-wrapper.active {
+  --card-opacity: 1;
+}
+
+/* جسم البطاقة الأساسي */
+.pc-card {
+  height: 75svh;
+  max-height: 500px;
+  display: grid;
+  aspect-ratio: 0.718;
+  border-radius: var(--card-radius);
+  position: relative;
+  box-shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.5);
+  transition: transform 0.4s cubic-bezier(0.25, 1, 0.5, 1);
+  transform: translateZ(0) rotateX(0deg) rotateY(0deg);
+  background: #0f172a; /* لون خلفية داكن بديل */
+  backface-visibility: hidden;
+  overflow: hidden;
+  border: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.pc-card:hover,
+.pc-card.active {
+  transition: none;
+  transform: translateZ(0) rotateX(var(--rotate-y)) rotateY(var(--rotate-x));
+}
+
+.pc-card-shell.entering .pc-card {
+  transition: transform 180ms ease-out;
+}
+
+.pc-card-shell {
+  position: relative;
+  z-index: 1;
+}
+
+.pc-card * {
+  display: grid;
+  grid-area: 1/-1;
+  border-radius: var(--card-radius);
+  pointer-events: none;
+}
+
+.pc-inside {
+  inset: 0;
+  position: absolute;
+  background: var(--inner-gradient, transparent);
+  transform: none;
+}
+
+/* === إصلاح الصورة (إزالة الفلاتر المشوهة) === */
+.pc-avatar-content {
+  mix-blend-mode: normal; /* هنا كان سبب المشكلة (Luminosity)، تم تغييره للوضع الطبيعي */
+  overflow: visible;
+  transform: translateZ(10px); 
+  backface-visibility: hidden;
+}
+
+.pc-avatar-content .avatar {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center top; /* الحفاظ على الرأس في الصورة */
+  position: absolute;
+  left: 50%;
+  transform-origin: 50% 100%;
+  transform: translateX(calc(-50% + (var(--pointer-from-left) - 0.5) * 6px)) translateZ(0)
+    scaleY(calc(1 + (var(--pointer-from-top) - 0.5) * 0.02)) scaleX(calc(1 + (var(--pointer-from-left) - 0.5) * 0.01));
+  bottom: -1px;
+  backface-visibility: hidden;
+  will-change: transform;
+  transition: transform 120ms ease-out;
+}
+
+/* === إضاءة الانعكاس النظيفة (بدلاً من الألوان المزعجة) === */
+.pc-glare, .pc-shine {
+  position: absolute;
+  inset: 0;
+  transform: translateZ(20px);
+  overflow: hidden;
+  /* انعكاس أبيض/سماوي ناعم يتبع الماوس */
+  background: radial-gradient(
+    farthest-corner circle at var(--pointer-x) var(--pointer-y),
+    rgba(255, 255, 255, 0.25) 0%,
+    rgba(34, 211, 238, 0.1) 40%,
+    transparent 80%
+  );
+  mix-blend-mode: overlay;
+  opacity: var(--card-opacity);
+  transition: opacity 0.3s ease;
+  z-index: 4;
+}
+
+/* === صندوق معلومات التواصل السفلي === */
+.pc-user-info {
+  position: absolute;
+  --ui-inset: 16px;
+  bottom: var(--ui-inset);
+  left: var(--ui-inset);
+  right: var(--ui-inset);
+  z-index: 10;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: rgba(15, 23, 42, 0.7); /* زجاج داكن */
+  backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 16px;
+  padding: 12px 14px;
+  pointer-events: auto;
+  transform: translateZ(30px); /* يطفو فوق البطاقة */
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+}
+
+.pc-user-details {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.pc-mini-avatar {
+  width: 42px;
+  height: 42px;
+  border-radius: 50%;
+  overflow: hidden;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  flex-shrink: 0;
+}
+
+.pc-mini-avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 50%;
+}
+
+.pc-user-text {
+  display: flex;
+  align-items: flex-start;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.pc-handle {
+  font-size: 14px;
+  font-weight: 600;
+  color: #fff;
+  line-height: 1;
+}
+
+.pc-status {
+  font-size: 12px;
+  color: #94a3b8;
+  line-height: 1;
+}
+
+.pc-contact-btn {
+  background: rgba(34, 211, 238, 0.1);
+  border: 1px solid rgba(34, 211, 238, 0.3);
+  border-radius: 8px;
+  padding: 10px 14px;
+  font-size: 13px;
+  font-weight: 600;
+  color: #22d3ee;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.pc-contact-btn:hover {
+  background: #22d3ee;
+  color: #0f172a;
+  transform: translateY(-2px);
+}
+
+/* === حاوية النص العلوي === */
+.pc-content:not(.pc-avatar-content) {
+  max-height: 100%;
+  overflow: hidden;
+  text-align: center;
+  position: relative;
+  transform: translate3d(
+    calc(var(--pointer-from-left) * -4px + 2px),
+    calc(var(--pointer-from-top) * -4px + 2px),
+    20px
+  );
+  z-index: 5;
+  mix-blend-mode: normal; /* تم إزالة الدمج المشوه */
+}
+
+.pc-details {
+  width: 100%;
+  position: absolute;
+  top: 0;
+  padding-top: 0.8em; /* تم تقليل المسافة لرفع النص للأعلى */
+  padding-bottom: 3em;
+  display: flex;
+  flex-direction: column;
+  background: linear-gradient(to bottom, rgba(2, 6, 23, 0.95) 0%, rgba(2, 6, 23, 0.2) 60%, transparent 100%);
+}
+
+.pc-details h3 {
+  font-weight: 800;
+  margin: 0;
+  font-size: min(4svh, 2.2em);
+  color: #ffffff;
+  text-shadow: 0 2px 10px rgba(0,0,0,0.8);
+  white-space: nowrap;
+}
+.pc-details p {
+  font-weight: 800;
+  margin: 6px auto 0;
+  font-size: 17px;
+  color: #22d3ee;
+  text-shadow: 0 2px 10px rgba(0,0,0,0.8);
+}
+
+@media (max-width: 768px) {
+  .pc-card {
+    height: 65svh;
+    max-height: 400px;
+  }
+  .pc-details {
+    padding-top: 0.5em; 
+  }
+  .pc-details h3 { 
+    font-size: clamp(1.1rem, 5.5vw, 1.4rem); 
+    letter-spacing: -0.5px;
+  }
+  .pc-details p { font-size: 12px; }
+  .pc-user-info { --ui-inset: 12px; padding: 10px; }
+}
